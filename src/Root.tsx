@@ -1,5 +1,6 @@
 import { Composition } from "remotion";
 import { calculateMythoMetadata, MythoShort } from "./compositions/MythoShort";
+import { calculateRavanaMetadata, RavanaCurses } from "./compositions/RavanaCurses";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -33,6 +34,26 @@ export const RemotionRoot: React.FC = () => {
           takeaway: "True worth needs no crown",
           voiceoverEnabled: true,
           voiceoverFile: "voiceover.mp3",
+          voiceoverVolume: 1,
+        }}
+      />
+      <Composition
+        id="RavanaCurses"
+        component={RavanaCurses}
+        durationInFrames={2400}
+        fps={30}
+        width={1080}
+        height={1920}
+        calculateMetadata={calculateRavanaMetadata}
+        defaultProps={{
+          hookText: "रावण को मारने वाले 4 श्राप!",
+          warningText: "बिना इच्छा स्पर्श = भस्म",
+          destinyText: "नियति का लेख",
+          showCaptions: true,
+          sfxEnabled: true,
+          sfxVolume: 0.8,
+          voiceoverEnabled: true,
+          voiceoverFile: "ravana-voiceover.mp3",
           voiceoverVolume: 1,
         }}
       />

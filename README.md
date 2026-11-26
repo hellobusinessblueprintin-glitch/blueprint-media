@@ -6,3 +6,11 @@ Vertical (1080x1920, 30fps) mythological motion-graphics Short template built wi
 - Drop a voiceover at `public/voiceover.mp3` – it plays automatically (skipped if absent)
 
 Components live in `src/components/`, the 4-beat demo sequence in `src/compositions/MythoShort.tsx`.
+
+## RavanaCurses — "रावण को मारने वाले 4 श्राप" (80s Hindi Short)
+
+- Composition `RavanaCurses` (2400 frames). Beat timings, the progress-bar labels, the Hindi caption cues and the SFX cue points all live in `src/data/ravanaScript.ts` (in seconds) — retime them there once the real voiceover is recorded.
+- Scenes: `src/compositions/ravana/Scenes.tsx`; characters/props (10-headed Ravana, chains, Nandi, Pushpak Viman, Vedavati + sacred fire + lotus, shield dome, Anaranya + lineage tree, icons): `src/components/ravana/`.
+- Voiceover: drop it at `public/ravana-voiceover.mp3` (auto-detected).
+- SFX: `public/sfx/boom.wav` (each new curse) and `public/sfx/whoosh.wav` (Vedavati → Sita at 00:35), synthesised locally.
+- Render: `npx remotion render RavanaCurses out/ravana-curses.mp4`

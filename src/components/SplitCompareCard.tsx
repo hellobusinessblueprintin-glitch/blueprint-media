@@ -17,21 +17,30 @@ export type SplitCompareCardProps = {
   /** Local frame (inside the parent <Sequence>) where the card starts animating. */
   delay?: number;
   top?: number;
+  /** Text in the centre badge ("VS", "→", …). */
+  badgeText?: string;
+  titleFont?: string;
+  labelFont?: string;
+  captionFont?: string;
+  panelHeight?: number;
 };
+
+type Fonts = { label: string; caption: string; panelHeight: number };
 
 const Panel: React.FC<{
   side: CompareSide;
   progress: number;
   from: "left" | "right";
   pulse: number;
-}> = ({ side, progress, from, pulse }) => {
+  fonts: Fonts;
+}> = ({ side, progress, from, pulse, fonts }) => {
   const dx = interpolate(progress, [0, 1], [from === "left" ? -700 : 700, 0]);
   const rot = interpolate(progress, [0, 1], [from === "left" ? -8 : 8, 0]);
   return (
     <div
       style={{
         flex: 1,
-        height: 640,
+        height: fonts.panelHeight,
         borderRadius: 40,
         padding: "40px 24px",
         display: "flex",
@@ -48,9 +57,10 @@ const Panel: React.FC<{
     >
       <div
         style={{
-          fontFamily: FONTS.display,
+          fontFamily: fonts.label,
           fontWeight: 900,
-          fontSize: 50,
+          fontSize: 56,
+          lineHeight: 1.2,
           color: side.accent,
           textTransform: "uppercase",
           letterSpacing: 1,
@@ -64,7 +74,7 @@ const Panel: React.FC<{
       </div>
       <div
         style={{
-          fontFamily: FONTS.body,
+          fontFamily: fonts.caption,
           fontWeight: 600,
           fontSize: 44,
           lineHeight: 1.15,
@@ -84,7 +94,13 @@ export const SplitCompareCard: React.FC<SplitCompareCardProps> = ({
   right,
   delay = 0,
   top = 470,
+  badgeText = "VS",
+  titleFont = FONTS.display,
+  labelFont = FONTS.display,
+  captionFont = FONTS.body,
+  panelHeight = 640,
 }) => {
+  const fonts: Fonts = { label: labelFont, caption: captionFont, panelHeight };
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const f = frame - delay;
@@ -99,9 +115,10 @@ export const SplitCompareCard: React.FC<SplitCompareCardProps> = ({
     <div style={{ position: "absolute", top, left: 80, right: 80 }}>
       <div
         style={{
-          fontFamily: FONTS.display,
+          fontFamily: titleFont,
           fontWeight: 900,
           fontSize: 64,
+          lineHeight: 1.25,
           color: COLORS.gold,
           textAlign: "center",
           marginBottom: 36,
@@ -113,8 +130,8 @@ export const SplitCompareCard: React.FC<SplitCompareCardProps> = ({
         {title}
       </div>
       <div style={{ position: "relative", display: "flex", gap: 40 }}>
-        <Panel side={left} progress={leftIn} from="left" pulse={pulse} />
-        <Panel side={right} progress={rightIn} from="right" pulse={1 - pulse} />
+        <Panel side={left} progress={leftIn} from="left" pulse={pulse} fonts={fonts} />
+        <Panel side={right} progress={rightIn} from="right" pulse={1 - pulse} fonts={fonts} />
         <div
           style={{
             position: "absolute",
@@ -139,7 +156,7 @@ export const SplitCompareCard: React.FC<SplitCompareCardProps> = ({
             rotate: `${interpolate(vs, [0, 1], [-90, 0])}deg`,
           }}
         >
-          VS
+          {badgeText}
         </div>
       </div>
     </div>

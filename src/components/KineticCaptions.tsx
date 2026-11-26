@@ -17,15 +17,21 @@ export type KineticCaptionsProps = {
   /** Frames between each word popping in. */
   wordStagger?: number;
   fontSize?: number;
+  fontFamily?: string;
+  /** Distance from the bottom edge when position = "lower". */
+  bottom?: number;
 };
 
-const clean = (w: string) => w.toLowerCase().replace(/[^a-z0-9']/g, "");
+// Strip punctuation (incl. Hindi danda/ellipsis) but keep letters of any script.
+const clean = (w: string) => w.toLowerCase().replace(/[\s.,!?;:'"…—–\-।]/g, "");
 
 export const KineticCaptions: React.FC<KineticCaptionsProps> = ({
   cues,
   position = "lower",
   wordStagger = 3,
   fontSize = 66,
+  fontFamily = FONTS.body,
+  bottom = 360,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -52,7 +58,7 @@ export const KineticCaptions: React.FC<KineticCaptionsProps> = ({
         position: "absolute",
         left: 80,
         right: 80,
-        ...(position === "lower" ? { bottom: 360 } : { top: "50%", translate: "0 -50%" }),
+        ...(position === "lower" ? { bottom } : { top: "50%", translate: "0 -50%" }),
         display: "flex",
         justifyContent: "center",
         opacity: out,
@@ -63,7 +69,7 @@ export const KineticCaptions: React.FC<KineticCaptionsProps> = ({
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "center",
-          columnGap: fontSize * 0.4,
+          columnGap: fontSize * 0.3,
           rowGap: 4,
           padding: "22px 40px",
           borderRadius: 999,
@@ -86,10 +92,12 @@ export const KineticCaptions: React.FC<KineticCaptionsProps> = ({
               key={i}
               style={{
                 display: "inline-block",
-                fontFamily: FONTS.body,
+                // Some Devanagari conjuncts (e.g. श्र) overhang their advance width.
+                padding: "0 6px",
+                fontFamily,
                 fontWeight: 800,
                 fontSize,
-                lineHeight: 1.15,
+                lineHeight: 1.3,
                 textTransform: "uppercase",
                 color: isHi ? COLORS.gold : "#ffffff",
                 WebkitTextStroke: "3px #000",
@@ -97,7 +105,7 @@ export const KineticCaptions: React.FC<KineticCaptionsProps> = ({
                 textShadow: isHi
                   ? "0 5px 0 #000, 0 0 24px rgba(255,209,102,0.8)"
                   : "0 5px 0 #000",
-                scale: String(interpolate(p, [0, 1], [0.3, isHi ? 1.04 : 1])),
+                scale: String(interpolate(p, [0, 1], [0.3, 1])),
                 translate: `0px ${interpolate(p, [0, 1], [24, 0])}px`,
                 opacity: interpolate(p, [0, 0.4], [0, 1], { extrapolateRight: "clamp" }),
               }}

@@ -8,6 +8,13 @@ export type ProgressTrackerProps = {
   /** Frame at which each step becomes active (same length as `steps`). */
   stageStartFrames: number[];
   top?: number;
+  /** From this frame on, every step shows as completed (finale). */
+  completeAtFrame?: number;
+  /** Label font — use a Devanagari-capable font for Hindi labels. */
+  labelFont?: string;
+  labelSize?: number;
+  /** Uppercase labels (Latin only). */
+  uppercase?: boolean;
 };
 
 const Check: React.FC<{ size: number }> = ({ size }) => (
@@ -27,6 +34,10 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
   steps,
   stageStartFrames,
   top = 110,
+  completeAtFrame,
+  labelFont = FONTS.body,
+  labelSize = 27,
+  uppercase = true,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -35,6 +46,8 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
   stageStartFrames.forEach((start, i) => {
     if (frame >= start) activeIndex = i;
   });
+  const allDone = completeAtFrame !== undefined && frame >= completeAtFrame;
+  if (allDone) activeIndex = steps.length;
 
   // Whole bar drops in at the start.
   const enter = spring({ frame, fps, config: { damping: 200 }, durationInFrames: 20 });
@@ -65,8 +78,13 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
           ? spring({ frame: frame - start, fps, config: { damping: 9, stiffness: 160 } })
           : 0;
         const doneT = isDone
-          ? spring({ frame: frame - (stageStartFrames[i + 1] ?? 0), fps, config: { damping: 200 } })
+          ? spring({
+              frame: frame - (stageStartFrames[i + 1] ?? completeAtFrame ?? 0) - (allDone ? i * 4 : 0),
+              fps,
+              config: { damping: 10, stiffness: 160 },
+            })
           : 0;
+        const finaleGlow = allDone ? 0.5 + 0.5 * Math.sin((frame / fps) * Math.PI * 2) : 0;
         const glow = isActive ? 0.6 + 0.4 * Math.sin((frame / fps) * Math.PI * 2) : 0;
         const scale = isActive ? interpolate(pop, [0, 1], [1, 1.1]) : 1;
 
@@ -86,12 +104,14 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
               background: isActive
                 ? "linear-gradient(180deg, rgba(255,209,102,0.28), rgba(255,209,102,0.08))"
                 : "rgba(255,255,255,0.04)",
-              border: isActive
+              border: isActive || allDone
                 ? `3px solid ${COLORS.gold}`
                 : `3px solid rgba(255,209,102,${isDone ? 0.35 : 0.1})`,
               boxShadow: isActive
                 ? `0 0 ${18 + glow * 22}px rgba(255,209,102,${0.55 + glow * 0.35})`
-                : "none",
+                : allDone
+                  ? `0 0 ${14 + finaleGlow * 18}px rgba(255,209,102,0.7)`
+                  : "none",
             }}
           >
             <div
@@ -120,13 +140,14 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({
             </div>
             <div
               style={{
-                fontFamily: FONTS.body,
+                fontFamily: labelFont,
                 fontWeight: 800,
-                fontSize: 27,
+                fontSize: labelSize,
                 letterSpacing: 0.5,
-                color: isActive ? COLORS.gold : COLORS.white,
-                opacity: isActive ? 1 : isDone ? 0.85 : 0.45,
-                textTransform: "uppercase",
+                whiteSpace: "nowrap",
+                color: isActive || allDone ? COLORS.gold : COLORS.white,
+                opacity: isActive || allDone ? 1 : isDone ? 0.85 : 0.45,
+                textTransform: uppercase ? "uppercase" : "none",
               }}
             >
               {label}

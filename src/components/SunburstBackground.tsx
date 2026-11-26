@@ -11,6 +11,8 @@ import { COLORS } from "../theme";
 export type SunburstBackgroundProps = {
   /** 0 = royal indigo, 1 = warm crimson/gold. Animate this to shift moods. */
   warmth?: number;
+  /** Explicit gradient colors — overrides `warmth` when given. */
+  colors?: { inner: string; mid: string; outer: string };
   /** Number of sunburst rays (16–20 recommended). */
   rayCount?: number;
   rayOpacity?: number;
@@ -28,6 +30,7 @@ const mod = (v: number, m: number) => ((v % m) + m) % m;
 
 export const SunburstBackground: React.FC<SunburstBackgroundProps> = ({
   warmth = 0,
+  colors,
   rayCount = 18,
   rayOpacity = 0.18,
   rayColor = COLORS.gold,
@@ -43,9 +46,9 @@ export const SunburstBackground: React.FC<SunburstBackgroundProps> = ({
   const cy = center?.y ?? height * 0.45;
 
   const w = Math.max(0, Math.min(1, warmth));
-  const inner = interpolateColors(w, [0, 1], [COLORS.indigoInner, COLORS.crimsonInner]);
-  const mid = interpolateColors(w, [0, 1], ["#141c4f", COLORS.crimsonMid]);
-  const outer = interpolateColors(w, [0, 1], [COLORS.indigoOuter, COLORS.crimsonOuter]);
+  const inner = colors?.inner ?? interpolateColors(w, [0, 1], [COLORS.indigoInner, COLORS.crimsonInner]);
+  const mid = colors?.mid ?? interpolateColors(w, [0, 1], ["#141c4f", COLORS.crimsonMid]);
+  const outer = colors?.outer ?? interpolateColors(w, [0, 1], [COLORS.indigoOuter, COLORS.crimsonOuter]);
 
   // Rays: wedges radiating from the center, rotating continuously.
   const R = Math.hypot(width, height);

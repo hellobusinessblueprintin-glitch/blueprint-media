@@ -1,5 +1,6 @@
 import { loadFont as loadCinzel } from "@remotion/google-fonts/Cinzel";
 import { loadFont as loadPoppins } from "@remotion/google-fonts/Poppins";
+import { loadFont as loadRozha } from "@remotion/google-fonts/RozhaOne";
 
 const cinzel = loadCinzel("normal", {
   weights: ["700", "900"],
@@ -7,7 +8,11 @@ const cinzel = loadCinzel("normal", {
 });
 const poppins = loadPoppins("normal", {
   weights: ["600", "800"],
-  subsets: ["latin"],
+  subsets: ["latin", "devanagari"],
+});
+const rozha = loadRozha("normal", {
+  weights: ["400"],
+  subsets: ["latin", "devanagari"],
 });
 
 export const FONTS = {
@@ -15,6 +20,8 @@ export const FONTS = {
   display: cinzel.fontFamily,
   /** Heavy sans for captions & UI. */
   body: poppins.fontFamily,
+  /** Heavy dramatic Devanagari display face for Hindi headlines. */
+  hindiDisplay: rozha.fontFamily,
 };
 
 export const COLORS = {
