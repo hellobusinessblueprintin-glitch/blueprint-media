@@ -12,5 +12,7 @@ Components live in `src/components/`, the 4-beat demo sequence in `src/compositi
 - Composition `RavanaCurses` (2760 frames). Beat timings, the progress-bar labels, the Hindi caption cues and the SFX cue points all live in `src/data/ravanaScript.ts` (in seconds) — retime them there once the real voiceover is recorded.
 - Scenes: `src/compositions/ravana/Scenes.tsx`; characters/props (10-headed Ravana, chains, Nandi, Pushpak Viman, Vedavati + sacred fire + lotus, shield dome, Anaranya + lineage tree, icons): `src/components/ravana/`.
 - Voiceover: `public/ravana-voiceover.mp3` — AI Awaaz, voice "Vikram" (V3), 91.2s. Timings in `ravanaScript.ts` are aligned to this file; replace it and retime to swap voices.
-- SFX: `public/sfx/boom.wav` (each new curse) and `public/sfx/whoosh.wav` (Vedavati → Sita at 00:35), synthesised locally.
+- Music: `public/music/ravana-score.mp3` — tanpura drone in D + low pad + dhol/taiko groove following the six beats.
+- SFX: `public/sfx/` — booms, chain locks, thud, whoosh/swish, fire, shimmer, zap, alarm, chimes, gong, pop, riser, plus Ravana's laugh (AI Awaaz, voice "Rana"). Cue list: `RAVANA_SFX` in `src/data/ravanaScript.ts`.
+- Regenerate music + synthesised SFX: `python3 scripts/generate_audio.py` (needs numpy).
 - Render: `npx remotion render RavanaCurses out/ravana-curses.mp4`

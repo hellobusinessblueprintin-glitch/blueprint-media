@@ -61,7 +61,9 @@ export const ShieldDome: React.FC<{ form: number; hit?: number; size?: number; s
 /** Flashing warning card, e.g. "बिना इच्छा स्पर्श = भस्म". */
 export const WarningCard: React.FC<{ text: string; appear: number }> = ({ text, appear }) => {
   const frame = useCurrentFrame();
-  const blink = frame % 16 < 10 ? 1 : 0.55;
+  const { fps } = useVideoConfig();
+  // Smooth pulse (a hard on/off blink strobes on video).
+  const blink = 0.75 + 0.25 * Math.sin((frame / fps) * Math.PI * 2 * 1.6);
   return (
     <div
       style={{

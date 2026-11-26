@@ -101,7 +101,7 @@ export const BeatFlash: React.FC<{ at?: number; strength?: number }> = ({ at = 0
 const Shake: React.FC<{ amount: number; children: React.ReactNode }> = ({ amount, children }) => {
   const frame = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ translate: `${Math.sin(frame * 2.7) * amount}px ${Math.cos(frame * 3.1) * amount}px` }}>
+    <AbsoluteFill style={{ translate: `${Math.sin(frame * 1.1) * amount}px ${Math.cos(frame * 1.4) * amount * 0.6}px` }}>
       {children}
     </AbsoluteFill>
   );
@@ -346,7 +346,7 @@ export const NalakuvaraScene: React.FC<{ warningText: string }> = ({ warningText
   const ravanaX = interpolate(
     frame,
     [0, 4 * S, hitAt - 18, hitAt, hitAt + 14, vatikaAt, vatikaAt + 45],
-    [-760, -330, -330, -180, -480, -480, -560],
+    [-640, -250, -250, -110, -400, -400, -470],
     { ...clamp, easing: Easing.inOut(Easing.quad) },
   );
   const hit = interpolate(frame - hitAt, [0, 3, 22], [0, 1, 0], clamp);
@@ -364,12 +364,17 @@ export const NalakuvaraScene: React.FC<{ warningText: string }> = ({ warningText
         <AshokaTree width={420} />
       </div>
 
-      <Shake amount={hit * 10}>
+      <Shake amount={hit * 7}>
         <div style={{ position: "absolute", left: ravanaX, top: 640 }}>
-          <Ravana width={640} silhouette={0.85} eyeGlow={1} crack={crack} />
+          <Ravana width={600} silhouette={1} eyeGlow={1} crack={crack} />
         </div>
       </Shake>
 
+      {frame >= shieldAt ? (
+        <div style={{ position: "absolute", left: 540, top: 1000, translate: "-50% -50%" }}>
+          <ShieldDome form={shield} hit={hit} size={680} />
+        </div>
+      ) : null}
       <div
         style={{
           position: "absolute",
@@ -381,11 +386,6 @@ export const NalakuvaraScene: React.FC<{ warningText: string }> = ({ warningText
       >
         <WomanSilhouette width={230} />
       </div>
-      {frame >= shieldAt ? (
-        <div style={{ position: "absolute", left: 540, top: 1000, translate: "-50% -50%" }}>
-          <ShieldDome form={shield} hit={hit} size={680} />
-        </div>
-      ) : null}
 
       {frame >= warnAt && frame < hitAt - 18 ? (
         <div

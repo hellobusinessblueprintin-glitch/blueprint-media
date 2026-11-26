@@ -3,6 +3,7 @@ import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
   CalculateMetadataFunction,
+  interpolate,
   interpolateColors,
   Sequence,
   staticFile,
@@ -16,6 +17,7 @@ import {
   RAVANA_BEATS,
   RAVANA_CAPTIONS,
   RAVANA_FPS,
+  RAVANA_MUSIC,
   RAVANA_SFX,
   RAVANA_STEPS,
 } from "../data/ravanaScript";
@@ -36,6 +38,8 @@ export type RavanaCursesProps = {
   showCaptions: boolean;
   sfxEnabled: boolean;
   sfxVolume: number;
+  musicEnabled: boolean;
+  musicVolume: number;
   /** Plays public/<voiceoverFile> if present; auto-disabled when missing. */
   voiceoverEnabled: boolean;
   voiceoverFile: string;
@@ -54,6 +58,7 @@ export const calculateRavanaMetadata: CalculateMetadataFunction<RavanaCursesProp
 };
 
 const f = (s: number) => Math.round(s * RAVANA_FPS);
+const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 /** Background mood for each beat: indigo hook → icy Kailash → fire amber → crimson → dusk → radiant gold. */
 const PALETTES = [
@@ -72,6 +77,8 @@ export const RavanaCurses: React.FC<RavanaCursesProps> = ({
   showCaptions,
   sfxEnabled,
   sfxVolume,
+  musicEnabled,
+  musicVolume,
   voiceoverEnabled,
   voiceoverFile,
   voiceoverVolume,
@@ -142,19 +149,28 @@ export const RavanaCurses: React.FC<RavanaCursesProps> = ({
         <KineticCaptions cues={RAVANA_CAPTIONS} fontSize={56} wordStagger={2} bottom={290} fontFamily={FONTS.body} />
       ) : null}
 
+      {musicEnabled ? <Audio src={staticFile(RAVANA_MUSIC)} volume={musicVolume} /> : null}
+
       {sfxEnabled
-        ? RAVANA_SFX.booms.map((s) => (
-            <Sequence key={`boom-${s}`} from={f(s)} durationInFrames={f(1.6)} name={`SFX boom @${s}s`} layout="none">
-              <Audio src={staticFile("sfx/boom.wav")} volume={sfxVolume} />
-            </Sequence>
-          ))
-        : null}
-      {sfxEnabled
-        ? RAVANA_SFX.whooshes.map((s) => (
-            <Sequence key={`whoosh-${s}`} from={f(s) - 12} durationInFrames={f(1.4)} name={`SFX whoosh @${s}s`} layout="none">
-              <Audio src={staticFile("sfx/whoosh.wav")} volume={sfxVolume} />
-            </Sequence>
-          ))
+        ? RAVANA_SFX.map((cue, i) => {
+            const len = cue.maxDuration ? f(cue.maxDuration) : undefined;
+            return (
+              <Sequence
+                key={i}
+                from={f(cue.at)}
+                durationInFrames={len}
+                name={`SFX ${cue.src.replace(/^sfx\//, "")} @${cue.at.toFixed(1)}s`}
+                layout="none"
+              >
+                <Audio
+                  src={staticFile(cue.src)}
+                  volume={(fr) =>
+                    cue.volume * sfxVolume * (len ? interpolate(fr, [len - 10, len], [1, 0], clamp) : 1)
+                  }
+                />
+              </Sequence>
+            );
+          })
         : null}
 
       {voiceoverEnabled ? <Audio src={staticFile(voiceoverFile)} volume={voiceoverVolume} /> : null}
