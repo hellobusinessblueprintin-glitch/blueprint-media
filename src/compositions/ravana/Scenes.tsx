@@ -17,6 +17,7 @@ import {
 } from "../../components/ravana/RavanaIcons";
 import { SplitCompareCard } from "../../components/SplitCompareCard";
 import { COLORS, FONTS } from "../../theme";
+import { RAVANA_CUES } from "../../data/ravanaScript";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const S = 30; // frames per second — scene timings below are written as seconds * S
@@ -113,8 +114,9 @@ export const HookScene: React.FC<{ hookText: string }> = ({ hookText }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const enter = spring({ frame, fps, config: { damping: 200 }, durationInFrames: 30 });
-  const lastLock = 4.6 * S + 10;
-  const struggle = interpolate(frame, [3.6 * S, lastLock, lastLock + 20], [0, 6, 1.5], clamp);
+  const { chainsAt } = RAVANA_CUES.hook;
+  const lastLock = chainsAt * S + 33;
+  const struggle = interpolate(frame, [chainsAt * S, lastLock, lastLock + 20], [0, 6, 1.5], clamp);
   // Loop seam: the video ends on a white flash, so it opens from white.
   const fromWhite = interpolate(frame, [0, 12], [1, 0], clamp);
 
@@ -136,10 +138,10 @@ export const HookScene: React.FC<{ hookText: string }> = ({ hookText }) => {
           width={1080}
           height={1920}
           chains={[
-            { from: { x: -260, y: 420 }, to: { x: 330, y: 1150 }, at: 3.6 * S },
-            { from: { x: 1340, y: 420 }, to: { x: 750, y: 1150 }, at: 3.6 * S + 8 },
-            { from: { x: -300, y: 1560 }, to: { x: 400, y: 1280 }, at: 4.1 * S },
-            { from: { x: 1380, y: 1560 }, to: { x: 680, y: 1280 }, at: 4.1 * S + 8 },
+            { from: { x: -260, y: 420 }, to: { x: 330, y: 1150 }, at: chainsAt * S },
+            { from: { x: 1340, y: 420 }, to: { x: 750, y: 1150 }, at: chainsAt * S + 8 },
+            { from: { x: -300, y: 1560 }, to: { x: 400, y: 1280 }, at: chainsAt * S + 15 },
+            { from: { x: 1380, y: 1560 }, to: { x: 680, y: 1280 }, at: chainsAt * S + 23 },
           ]}
         />
       </Shake>
@@ -158,18 +160,20 @@ export const NandiScene: React.FC = () => {
 
   const mountain = spring({ frame, fps, config: { damping: 200 }, durationInFrames: 40 });
   // Viman glides in and is stopped dead at ~6s.
-  const stopAt = 6 * S;
+  const c = RAVANA_CUES.nandi;
+  const stopAt = c.stopAt * S;
   const vx = interpolate(frame, [0, stopAt], [1150, 120], { ...clamp, easing: Easing.out(Easing.cubic) });
   const jolt = frame > stopAt ? Math.sin((frame - stopAt) * 0.9) * 10 * Math.exp(-(frame - stopAt) / 12) : 0;
   const bob = Math.sin((frame / fps) * Math.PI * 2 * 0.5) * 8;
   // Nandi steps forward from the right.
-  const nandiIn = interpolate(frame, [5.6 * S, 7.4 * S], [1200, 600], { ...clamp, easing: Easing.out(Easing.quad) });
-  const walking = frame > 5.6 * S && frame < 7.4 * S;
-  const anger = interpolate(frame, [10 * S, 10.6 * S], [0, 1], clamp);
-  const laugh = interpolate(frame, [7.5 * S, 7.9 * S, 9.6 * S, 10 * S], [0, 1, 1, 0], clamp);
-  const bubble = spring({ frame: frame - 7.6 * S, fps, config: { damping: 9, stiffness: 180 } });
-  const cardOn = frame >= 10 * S;
-  const dim = interpolate(frame, [10 * S, 10.5 * S], [0, 0.55], clamp);
+  const nandiIn = interpolate(frame, [(c.stopAt - 0.4) * S, (c.stopAt + 1.4) * S], [1200, 600], { ...clamp, easing: Easing.out(Easing.quad) });
+  const walking = frame > (c.stopAt - 0.4) * S && frame < (c.stopAt + 1.4) * S;
+  const curse = c.curseAt * S;
+  const anger = interpolate(frame, [curse, curse + 18], [0, 1], clamp);
+  const laugh = interpolate(frame, [c.laughAt * S, c.laughAt * S + 12, curse - 12, curse], [0, 1, 1, 0], clamp);
+  const bubble = spring({ frame: frame - c.laughAt * S - 3, fps, config: { damping: 9, stiffness: 180 } });
+  const cardOn = frame >= curse;
+  const dim = interpolate(frame, [curse, curse + 15], [0, 0.55], clamp);
 
   return (
     <AbsoluteFill>
@@ -207,13 +211,13 @@ export const NandiScene: React.FC = () => {
         <AbsoluteFill style={{ backgroundColor: "#000", opacity: dim }} />
       </AbsoluteFill>
 
-      <BeatTitle kicker="श्राप #1" title="नंदी का श्राप" hideAt={10 * S} />
+      <BeatTitle kicker="श्राप #1" title="नंदी का श्राप" hideAt={curse} />
 
       {cardOn ? (
         <SplitCompareCard
           title="घमंड का फल"
           badgeText="→"
-          delay={10 * S + 2}
+          delay={curse + 2}
           top={360}
           panelHeight={600}
           titleFont={FONTS.hindiDisplay}
@@ -235,16 +239,17 @@ export const VedavatiScene: React.FC = () => {
   const { fps } = useVideoConfig();
 
   const enter = spring({ frame, fps, config: { damping: 200 }, durationInFrames: 30 });
-  const fireStart = 8.5 * S;
-  const morph = 13 * S; // = 00:35 on the master timeline (whoosh)
+  const c = RAVANA_CUES.vedavati;
+  const fireStart = c.fireAt * S;
+  const morph = c.morphAt * S; // Vedavati → Sita (whoosh)
   const fire = fireIntensity(frame, fireStart, fireStart + 1.5 * S, morph + 15);
   const ravanaX = interpolate(
     frame,
-    [6.3 * S, 8.4 * S, fireStart + 6, fireStart + 40],
+    [c.ravanaAt * S, (c.ravanaAt + 1.8) * S, fireStart + 6, fireStart + 40],
     [-700, -210, -210, -760],
     { ...clamp, easing: Easing.inOut(Easing.quad) },
   );
-  const vedavatiFade = interpolate(frame, [11 * S, morph], [1, 0], clamp);
+  const vedavatiFade = interpolate(frame, [morph - 2 * S, morph], [1, 0], clamp);
   const lotus = spring({ frame: frame - morph, fps, config: { damping: 12, stiffness: 90 } });
   const label = spring({ frame: frame - morph - 20, fps, config: { damping: 10, stiffness: 160 } });
   const flash = interpolate(frame - morph, [-4, 0, 14], [0, 0.9, 0], clamp);
@@ -265,7 +270,7 @@ export const VedavatiScene: React.FC = () => {
       >
         <Vedavati width={540} />
       </div>
-      {frame >= 6 * S && frame < fireStart + 45 ? (
+      {frame >= c.ravanaAt * S && frame < fireStart + 45 ? (
         <div style={{ position: "absolute", left: ravanaX, top: 640 }}>
           <Ravana width={620} silhouette={0.25} eyeGlow={1} />
         </div>
@@ -330,20 +335,24 @@ export const NalakuvaraScene: React.FC<{ warningText: string }> = ({ warningText
   const { fps } = useVideoConfig();
 
   const enter = spring({ frame, fps, config: { damping: 200 }, durationInFrames: 30 });
-  const shield = spring({ frame: frame - 5 * S, fps, config: { damping: 14, stiffness: 70 } });
-  const warn = spring({ frame: frame - 8 * S, fps, config: { damping: 10, stiffness: 150 } });
-  const warnOut = interpolate(frame, [11.6 * S, 12 * S], [1, 0], clamp);
-  const hitAt = 12.6 * S;
+  const c = RAVANA_CUES.nalakuvara;
+  const shieldAt = c.shieldAt * S;
+  const warnAt = c.warnAt * S;
+  const hitAt = c.hitAt * S;
+  const vatikaAt = c.vatikaAt * S;
+  const shield = spring({ frame: frame - shieldAt, fps, config: { damping: 14, stiffness: 70 } });
+  const warn = spring({ frame: frame - warnAt, fps, config: { damping: 10, stiffness: 150 } });
+  const warnOut = interpolate(frame, [hitAt - 30, hitAt - 18], [1, 0], clamp);
   const ravanaX = interpolate(
     frame,
-    [0, 4 * S, 12 * S, hitAt, hitAt + 14, 14.5 * S, 16 * S],
+    [0, 4 * S, hitAt - 18, hitAt, hitAt + 14, vatikaAt, vatikaAt + 45],
     [-760, -330, -330, -180, -480, -480, -560],
     { ...clamp, easing: Easing.inOut(Easing.quad) },
   );
   const hit = interpolate(frame - hitAt, [0, 3, 22], [0, 1, 0], clamp);
   const crack = interpolate(frame - hitAt, [0, 18], [0, 1], clamp);
-  const vatika = spring({ frame: frame - 14.5 * S, fps, config: { damping: 200 }, durationInFrames: 30 });
-  const vatikaLabel = spring({ frame: frame - 14.8 * S, fps, config: { damping: 10, stiffness: 160 } });
+  const vatika = spring({ frame: frame - vatikaAt, fps, config: { damping: 200 }, durationInFrames: 30 });
+  const vatikaLabel = spring({ frame: frame - vatikaAt - 9, fps, config: { damping: 10, stiffness: 160 } });
 
   return (
     <AbsoluteFill>
@@ -372,13 +381,13 @@ export const NalakuvaraScene: React.FC<{ warningText: string }> = ({ warningText
       >
         <WomanSilhouette width={230} />
       </div>
-      {frame >= 5 * S ? (
+      {frame >= shieldAt ? (
         <div style={{ position: "absolute", left: 540, top: 1000, translate: "-50% -50%" }}>
           <ShieldDome form={shield} hit={hit} size={680} />
         </div>
       ) : null}
 
-      {frame >= 8 * S && frame < 12 * S ? (
+      {frame >= warnAt && frame < hitAt - 18 ? (
         <div
           style={{
             position: "absolute",
@@ -394,7 +403,7 @@ export const NalakuvaraScene: React.FC<{ warningText: string }> = ({ warningText
         </div>
       ) : null}
 
-      {frame >= 14.8 * S ? (
+      {frame >= vatikaAt + 9 ? (
         <div style={{ position: "absolute", left: 0, right: 0, top: 1290, display: "flex", justifyContent: "center" }}>
           <div
             style={{
@@ -425,9 +434,10 @@ export const AnaranyaScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const enter = spring({ frame, fps, config: { damping: 200 }, durationInFrames: 30 });
-  const point = spring({ frame: frame - 4.6 * S, fps, config: { damping: 12, stiffness: 90 } });
-  const treeStart = 7.2 * S;
-  const heroAt = 11.2 * S;
+  const c = RAVANA_CUES.anaranya;
+  const point = spring({ frame: frame - c.pointAt * S, fps, config: { damping: 12, stiffness: 90 } });
+  const treeStart = c.treeAt * S;
+  const heroAt = c.heroAt * S;
   const kingDim = interpolate(frame, [treeStart, treeStart + 20], [1, 0.75], clamp);
 
   return (
@@ -477,14 +487,18 @@ const PAYOFF_ICONS = [
 export const PayoffScene: React.FC<{ destinyText: string }> = ({ destinyText }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const mergeStart = 3 * S;
-  const mergeEnd = 4.2 * S;
+  const { durationInFrames } = useVideoConfig();
+  const c = RAVANA_CUES.payoff;
+  const mergeStart = c.mergeAt * S;
+  const mergeEnd = mergeStart + 36;
+  const subAt = c.subscribeAt * S;
   const merge = interpolate(frame, [mergeStart, mergeEnd], [0, 1], { ...clamp, easing: Easing.in(Easing.cubic) });
   const bow = spring({ frame: frame - mergeEnd, fps, config: { damping: 10, stiffness: 120 } });
   const destiny = spring({ frame: frame - mergeEnd - 8, fps, config: { damping: 12, stiffness: 150 } });
-  const sub = spring({ frame: frame - 7.3 * S, fps, config: { damping: 8, stiffness: 180 } });
+  const sub = spring({ frame: frame - subAt, fps, config: { damping: 8, stiffness: 180 } });
   const flash = interpolate(frame - mergeEnd, [-2, 0, 14], [0, 1, 0], clamp);
-  const toWhite = interpolate(frame, [9.4 * S, 10 * S - 1], [0, 1], clamp);
+  // useVideoConfig() inside a <Sequence> reports the sequence's own duration.
+  const toWhite = interpolate(frame, [durationInFrames - 18, durationInFrames - 1], [0, 1], clamp);
   const glow = 0.5 + 0.5 * Math.sin((frame / fps) * Math.PI * 2);
 
   return (
@@ -564,7 +578,7 @@ export const PayoffScene: React.FC<{ destinyText: string }> = ({ destinyText }) 
       ) : null}
 
       {/* Subscribe nudge */}
-      {frame >= 7.3 * S ? (
+      {frame >= subAt ? (
         <div style={{ position: "absolute", left: 0, right: 0, top: 1290, display: "flex", justifyContent: "center" }}>
           <div
             style={{
@@ -582,7 +596,7 @@ export const PayoffScene: React.FC<{ destinyText: string }> = ({ destinyText }) 
               color: "#fff",
             }}
           >
-            <svg width={56} height={56} viewBox="0 0 24 24" style={{ rotate: `${Math.sin(frame * 0.8) * 18 * Math.exp(-(frame - 7.3 * S) / 30)}deg` }}>
+            <svg width={56} height={56} viewBox="0 0 24 24" style={{ rotate: `${Math.sin(frame * 0.8) * 18 * Math.exp(-(frame - subAt) / 30)}deg` }}>
               <path d="M12 22a2.5 2.5 0 0 0 2.5-2.5h-5A2.5 2.5 0 0 0 12 22zm7-6V11a7 7 0 0 0-5.5-6.8V3a1.5 1.5 0 0 0-3 0v1.2A7 7 0 0 0 5 11v5l-2 2v1h18v-1z" fill="#fff" />
             </svg>
             सब्सक्राइब करें

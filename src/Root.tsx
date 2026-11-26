@@ -40,7 +40,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition
         id="RavanaCurses"
         component={RavanaCurses}
-        durationInFrames={2400}
+        durationInFrames={2760}
         fps={30}
         width={1080}
         height={1920}
@@ -51,7 +51,7 @@ export const RemotionRoot: React.FC = () => {
           destinyText: "नियति का लेख",
           showCaptions: true,
           sfxEnabled: true,
-          sfxVolume: 0.8,
+          sfxVolume: 0.55,
           voiceoverEnabled: true,
           voiceoverFile: "ravana-voiceover.mp3",
           voiceoverVolume: 1,
